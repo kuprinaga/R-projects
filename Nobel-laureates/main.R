@@ -6,11 +6,9 @@ rm(list=ls())
 #which country has highest number of women laureates?
 #which country has most laureates in which category?
 #which categories are most common to have 2 or more people share prize?
-#which country has most prizes? which has least?
-#what year had most categories with 2 or more people sharing prize?
+#which country has most laureates? which has least?
 #what universities are most common for laureates?
 #who are the organizations that receieved a price?
-#what's the most common age of laureates?
 
 require(tidyverse)
 require(stringr)
@@ -47,11 +45,11 @@ data.organizations = data [ data$Laureate.Type == "Organization" , ]
 
 #answer questions related to individuals
 ###########################################################
-##### which country has most prizes? which has least? #####
+##### which country has most laureates? which has least? ##
 ###########################################################
 
 #use dplyr to arrange countries in descending order  
-prizes.by.country = data.individuals %>%
+laureates.by.country = data.individuals %>%
   select(Birth.Country) %>% 
   group_by(Birth.Country) %>% 
   summarise(number = n()) %>% 
@@ -61,35 +59,34 @@ prizes.by.country = data.individuals %>%
 ### which country has highest number of women laureates? ##
 ###########################################################
 
-prizes.by.sex = data.individuals %>%
+laureates.by.sex = data.individuals %>%
   select(Sex) %>%
   group_by(Sex) %>%
   summarise( number = n() ) %>%
   arrange (-number)
 
 #by country and by sex
-prizes.by.sex.by.country = data.individuals %>%
+laureates.by.sex.by.country = data.individuals %>%
   select(Sex, Birth.Country) %>%
   group_by(Sex, Birth.Country) %>%
   summarise( number = n() ) %>%
   arrange (-number)
 
 #tidy data
-prizes.by.sex.by.country = spread(prizes.by.sex.by.country, key = "Sex", value = "number")
+laureates.by.sex.by.country = spread(laureates.by.sex.by.country, key = "Sex", value = "number")
 
 #substitute NAs
-prizes.by.sex.by.country$Female[is.na(prizes.by.sex.by.country$Female)] <- 0
-prizes.by.sex.by.country$Male[is.na(prizes.by.sex.by.country$Male)] <- 0
+laureates.by.sex.by.country$Female[is.na(laureates.by.sex.by.country$Female)] <- 0
+laureates.by.sex.by.country$Male[is.na(laureates.by.sex.by.country$Male)] <- 0
 
 #remove all rows where Female == 0
-prizes.by.sex.by.country = prizes.by.sex.by.country[ prizes.by.sex.by.country$Female > 0 , ]
+laureates.by.sex.by.country = laureates.by.sex.by.country[ laureates.by.sex.by.country$Female > 0 , ]
 
 
 ##########################################################
 #### what's the most common category for each country #####
 ##########################################################
 
-# find most common category for the country
 categories.by.country = data.individuals %>%
   select(Birth.Country, Category) %>% 
   group_by(Birth.Country, Category) %>% 
@@ -97,29 +94,55 @@ categories.by.country = data.individuals %>%
   filter(number == max(number))
 
 ##########################################################
-#### what categories have prizes most commonly shared  ###
+#### what categories have laureates most commonly shared  ###
 ##########################################################
-#display as percentage of total
-#Wolf suspects: Medicine, Physics
+#in future: display as percentage of total
 
 #find number that follows a forward slash
 
-shared.prizes = data.individuals
-shared.prizes$Prize.Share = substring(shared.prizes$Prize.Share, 3)
+shared.laureates = data.individuals
+shared.laureates$Prize.Share = substring(shared.laureates$Prize.Share, 3)
 
-shared.prizes$Prize.Share = as.integer(shared.prizes$Prize.Share)
+shared.laureates$Prize.Share = as.integer(shared.laureates$Prize.Share)
 
 #only display unique category, prize.share, year, country
 #group by country and year, no summarise
 
-shared.prizes = shared.prizes %>%
+shared.laureates = shared.laureates %>%
   select(Category, max(Prize.Share)) %>%
   group_by(Category)
 
-shared.prizes = aggregate(shared.prizes$Prize.Share, list(shared.prizes$Category), max)
-names(shared.prizes) = c("Category", "Max.share")
-  
-#only filter out unique values
-shared.prizes = unique(shared.prizes)
+shared.laureates = aggregate(shared.laureates$Prize.Share, list(shared.laureates$Category), max)
+names(shared.laureates) = c("Category", "Max.share")
 
+##########################################################
+#### what universities are most common for laureates?  ###
+##########################################################
+
+
+laureates.by.university = data.individuals
+
+laureates.by.university = laureates.by.university[ laureates.by.university$Organization.Name != "" , names(laureates.by.university) %in% c("Category", "Organization.Name") ]
+
+laureates.by.university = laureates.by.university %>%
+  select(Organization.Name, Category) %>% 
+  group_by(Organization.Name, Category) %>% 
+  summarise(number = n()) %>% 
+  filter(number == max(number))
+
+laureates.by.university = laureates.by.university %>%
+  select(Category, max(number), Organization.Name) %>%
+  group_by(Category) %>%
+  filter(number == max(number))
+
+
+###########################################################
+#### who are the organizations that receieved a price? ####
+###########################################################
+
+laureates.organizations = data.organizations %>%
+  select(Category) %>% 
+  group_by(Category) %>% 
+  summarise(number = n()) %>% 
+  arrange(-number)
 
