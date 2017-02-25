@@ -1,0 +1,9 @@
+{
+    "path" : "~/GitHub/R-projects/Nobel-laureates",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
