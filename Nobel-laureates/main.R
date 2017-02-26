@@ -47,6 +47,17 @@ laureates.by.country = data.individuals %>%
   summarise(number = n()) %>% 
   arrange(-number)
 
+laureates.by.country.chart = head(laureates.by.country)
+
+ggplot (data = laureates.by.country.chart, aes(x = Birth.Country, y = number)) +
+  geom_bar(stat = "identity", fill = "gray") + 
+  geom_text(aes(label= laureates.by.country.chart$Birth.Country), vjust = -1 )+
+  theme(axis.ticks.x = element_blank(), axis.text.x = element_blank()) +
+  ylab("Number of Individual Laureates") +
+  xlab("Country of Birth") +
+  ggtitle("Number of Laureates by Country Compared to Average, top countries") +
+  geom_hline(yintercept = mean(laureates.by.country$number), color="black")
+  
 ###########################################################
 ### which country has highest number of women laureates? ##
 ###########################################################
@@ -84,6 +95,9 @@ categories.by.country = data.individuals %>%
   group_by(Birth.Country, Category) %>% 
   summarise(number = n()) %>% 
   filter(number == max(number))
+
+
+
 
 ##########################################################
 #### what categories have laureates most commonly shared  ###
