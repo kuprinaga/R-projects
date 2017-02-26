@@ -24,8 +24,8 @@ realCountry = function(x){
   }
   else
   {
-      return(as.character(x))
-    }
+    return(as.character(x))
+  }
 }
 
 data$Birth.Country <- sapply(data$Birth.Country, realCountry)
@@ -49,15 +49,19 @@ laureates.by.country = data.individuals %>%
 
 laureates.by.country.chart = head(laureates.by.country)
 
+list.of.top.countries = head(laureates.by.country$Birth.Country, n = 9L)
+list.of.top.countries = as.list(list.of.top.countries)
+
 ggplot (data = laureates.by.country.chart, aes(x = Birth.Country, y = number)) +
-  geom_bar(stat = "identity", fill = "gray") + 
+  geom_bar(stat = "identity", fill = "light blue") + 
   geom_text(aes(label= laureates.by.country.chart$Birth.Country), vjust = -1 )+
   theme(axis.ticks.x = element_blank(), axis.text.x = element_blank()) +
   ylab("Number of Individual Laureates") +
   xlab("Country of Birth") +
   ggtitle("Number of Laureates by Country Compared to Average, top countries") +
   geom_hline(yintercept = mean(laureates.by.country$number), color="black")
-  
+
+
 ###########################################################
 ### which country has highest number of women laureates? ##
 ###########################################################
@@ -66,37 +70,66 @@ laureates.by.sex = data.individuals %>%
   select(Sex) %>%
   group_by(Sex) %>%
   summarise( number = n() ) %>%
-  arrange (-number)
+  arrange (-number) %>%
+  mutate( percentage = number / sum(number) * 100 )
+
+require(cowplot)
+plot = ggplot (data = laureates.by.sex, aes(x = 1, y = percentage, fill=Sex)) +
+  geom_bar(stat = "identity") +
+  coord_flip() + 
+  theme(plot.title = element_text(hjust = 0.5), axis.ticks.y= element_blank(), axis.text.y = element_blank(), axis.title.y = element_blank()) +
+  xlab("Percentage") +
+  ggtitle("Individual Laureates Grouped by Gender")
+
+
+ggdraw(add_sub(plot, "95% of Laureates are Male"))
 
 #by country and by sex
 laureates.by.sex.by.country = data.individuals %>%
   select(Sex, Birth.Country) %>%
   group_by(Sex, Birth.Country) %>%
   summarise( number = n() ) %>%
-  arrange (-number)
+  arrange (-number) %>%
+  na.omit()
 
-#tidy data
-laureates.by.sex.by.country = spread(laureates.by.sex.by.country, key = "Sex", value = "number")
+short.list.by.sex.by.country = laureates.by.sex.by.country[ laureates.by.sex.by.country$Birth.Country %in% list.of.top.countries , ]
 
-#substitute NAs
-laureates.by.sex.by.country$Female[is.na(laureates.by.sex.by.country$Female)] <- 0
-laureates.by.sex.by.country$Male[is.na(laureates.by.sex.by.country$Male)] <- 0
-
-#remove all rows where Female == 0
-laureates.by.sex.by.country = laureates.by.sex.by.country[ laureates.by.sex.by.country$Female > 0 , ]
-
-
-##########################################################
+ggplot (data = short.list.by.sex.by.country, aes(x = Sex, y = number, fill = Birth.Country)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent) + 
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.title.y =element_blank(),
+                     axis.title.x = element_blank(),
+                     axis.ticks.y = element_blank(), axis.ticks.x = element_blank())+
+  guides(fill=guide_legend(title="Top Countries")) +
+  scale_fill_brewer(type = "div") +
+  ggtitle("Gender Distribution by Country, percentage")
+  
+  
+  
+  ##########################################################
 #### what's the most common category for each country #####
 ##########################################################
 
 categories.by.country = data.individuals %>%
   select(Birth.Country, Category) %>% 
   group_by(Birth.Country, Category) %>% 
-  summarise(number = n()) %>% 
-  filter(number == max(number))
+  summarise(number = n()) 
+
+short.list.cats.by.country = categories.by.country[ categories.by.country$Birth.Country %in% list.of.top.countries , ]
 
 
+ggplot (data = short.list.cats.by.country, aes(x = Birth.Country, y = number, fill = Category)) +
+  geom_bar(stat = "identity", position = "fill") + 
+  scale_y_continuous(labels = scales::percent) + 
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 8),
+        panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.title.y =element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
+  guides(fill=guide_legend(title= element_blank())) +
+  scale_fill_brewer(type = "div") +
+  ggtitle("Most Common Categories by Country, percentage")
 
 
 ##########################################################
