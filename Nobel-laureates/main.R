@@ -102,7 +102,7 @@ ggplot (data = short.list.by.sex.by.country, aes(x = Sex, y = number, fill = Bir
                      axis.title.x = element_blank(),
                      axis.ticks.y = element_blank(), axis.ticks.x = element_blank())+
   guides(fill=guide_legend(title="Top Countries")) +
-  scale_fill_brewer(type = "div") +
+  scale_fill_brewer(type = "seq", palette = "BuPu") +
   ggtitle("Gender Distribution by Country, percentage")
   
   
@@ -128,7 +128,7 @@ ggplot (data = short.list.cats.by.country, aes(x = Birth.Country, y = number, fi
         axis.title.x = element_blank(),
         axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
   guides(fill=guide_legend(title= element_blank())) +
-  scale_fill_brewer(type = "div") +
+  scale_fill_brewer(type = "seq", palette = "BuPu") +
   ggtitle("Most Common Categories by Country, percentage")
 
 
