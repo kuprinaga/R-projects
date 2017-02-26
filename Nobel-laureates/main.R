@@ -138,3 +138,31 @@ laureates.organizations = data.organizations %>%
   summarise(number = n()) %>% 
   arrange(-number)
 
+
+
+###########################################################
+############### laureates' age distribution ###############
+###########################################################
+
+data.individuals$Birth.Date = as.Date(data.individuals$Birth.Date, format = "%Y-%m-%d")
+data.individuals$Birth.Year = NULL
+data.individuals$Birth.Year = format(data.individuals$Birth.Date, format = "%Y")
+data.individuals$Birth.Year = as.integer(data.individuals$Birth.Year)
+
+data.individuals$Age = NULL
+data.individuals$Age = data.individuals$Year - data.individuals$Birth.Year
+
+age.distribution = data.individuals %>%
+  select(Age) %>%
+  group_by(Age) %>%
+  summarise( number = n()) %>%
+  na.omit() %>%
+  arrange (-number)
+
+average.age.of.laureates = mean(age.distribution$Age)
+
+
+
+
+
+
